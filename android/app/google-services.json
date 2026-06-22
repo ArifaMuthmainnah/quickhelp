@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "397924193709",
+    "project_id": "uas-quickhelp",
+    "storage_bucket": "uas-quickhelp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:397924193709:android:f705c01596c92100373d24",
+        "android_client_info": {
+          "package_name": "com.example.quickhelp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCU5VrqShJ8S7rm3_4ftfF4FAT3bFXCZAM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
