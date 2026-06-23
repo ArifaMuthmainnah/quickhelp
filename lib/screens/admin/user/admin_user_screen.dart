@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+
 import '../../../theme/app_colors.dart';
 import 'admin_user_detail_screen.dart';
 
@@ -32,20 +33,104 @@ class _AdminUserScreenState
         .collection("users")
         .doc(uid)
         .update({
-      "accountStatus": "Nonaktif"
+      "accountStatus": "Nonaktif",
     });
+  }
+
+  Future<void> confirmDelete(
+    String uid,
+  ) async {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text(
+          "Hapus Pengguna",
+        ),
+        content: const Text(
+          "Yakin ingin menghapus pengguna ini?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text("Batal"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            onPressed: () async {
+              Navigator.pop(context);
+              await deleteUser(uid);
+            },
+            child: const Text(
+              "Hapus",
+              style: TextStyle(
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget statCard(
+    String title,
+    String value,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius:
+            BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: 0.05,
+            ),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight:
+                  FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text(
           "Kelola Pengguna",
         ),
       ),
-      body: StreamBuilder(
+
+      body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection("users")
             .snapshots(),
@@ -59,31 +144,29 @@ class _AdminUserScreenState
 
           final users = snapshot.data!.docs;
 
-          final filteredUsers = users.where(
-            (doc) {
-              final data = doc.data();
-              final keyword =
-                  searchController.text
-                      .toLowerCase();
+          final filteredUsers =
+              users.where((doc) {
+            final data =
+                doc.data()
+                    as Map<String, dynamic>;
 
-              final name =
-                  (data["name"] ?? "")
-                      .toString()
-                      .toLowerCase();
+            final keyword =
+                searchController.text
+                    .toLowerCase();
 
-              final npm =
-                  (data["npm"] ?? "")
-                      .toString()
-                      .toLowerCase();
+            final name =
+                (data["name"] ?? "")
+                    .toString()
+                    .toLowerCase();
 
-              return name.contains(
-                      keyword) ||
-                  npm.contains(keyword);
-            },
-          ).toList();
+            final npm =
+                (data["npm"] ?? "")
+                    .toString()
+                    .toLowerCase();
 
-          final totalUsers =
-              users.length;
+            return name.contains(keyword) ||
+                npm.contains(keyword);
+          }).toList();
 
           return ListView(
             padding:
@@ -98,7 +181,7 @@ class _AdminUserScreenState
                 decoration:
                     InputDecoration(
                   hintText:
-                      "Cari nama / npm",
+                      "Cari nama / NPM",
                   prefixIcon:
                       const Icon(
                     Icons.search,
@@ -110,230 +193,248 @@ class _AdminUserScreenState
                       OutlineInputBorder(
                     borderRadius:
                         BorderRadius.circular(
-                            15),
+                            18),
+                    borderSide:
+                        BorderSide.none,
                   ),
                 ),
               ),
 
-              const SizedBox(
-                height: 20,
+              const SizedBox(height: 20),
+
+              statCard(
+                "Total Pengguna",
+                users.length.toString(),
               ),
 
-              Row(
-                children: [
-                  Expanded(
-                    child: _statCard(
-                      "Total Pengguna",
-                      totalUsers.toString(),
-                    ),
+              const SizedBox(height: 25),
+
+              if (filteredUsers.isEmpty)
+                const Center(
+                  child: Text(
+                    "Tidak ada pengguna.",
                   ),
-                ],
-              ),
+                ),
 
-              const SizedBox(
-                height: 25,
-              ),
+              ...filteredUsers.map((user) {
+                final data =
+                    user.data()
+                        as Map<String, dynamic>;
 
-              ...filteredUsers.map(
-                (user) {
-                  final data = user.data();
+                final status =
+                    data["accountStatus"] ??
+                        "Aktif";
 
-                  return Card(
-                    margin:
-                        const EdgeInsets.only(
-                            bottom: 20),
-                    child: Padding(
-                      padding:
-                          const EdgeInsets.all(
-                              16),
-                      child: Column(
+                return Container(
+                  margin:
+                      const EdgeInsets.only(
+                    bottom: 18,
+                  ),
+                  padding:
+                      const EdgeInsets.all(
+                          18),
+                  decoration:
+                      BoxDecoration(
+                    color: Colors.white,
+                    borderRadius:
+                        BorderRadius.circular(
+                            22),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black
+                            .withValues(
+                          alpha: 0.05,
+                        ),
+                        blurRadius: 10,
+                        offset:
+                            const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
                         children: [
-                          Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 28,
-                                backgroundImage:
-                                    data["photoUrl"] !=
-                                                null &&
-                                            data["photoUrl"] !=
-                                                ""
-                                        ? NetworkImage(
-                                            data["photoUrl"])
-                                        : null,
-                                child:
-                                    data["photoUrl"] ==
+                          CircleAvatar(
+                            radius: 28,
+                            backgroundImage:
+                                data["photoUrl"] !=
+                                            null &&
+                                        data["photoUrl"] !=
                                             ""
-                                        ? const Icon(
-                                            Icons
-                                                .person)
-                                        : null,
-                              ),
-                              const SizedBox(
-                                  width: 15),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment
-                                          .start,
-                                  children: [
-                                    Text(
-                                      data["name"],
-                                      style:
-                                          const TextStyle(
-                                        fontWeight:
-                                            FontWeight
-                                                .bold,
-                                      ),
-                                    ),
-                                    Text(
-                                      data["npm"],
-                                    ),
-                                    Text(
-                                      data["bio"] ??
-                                          "-",
-                                      style:
-                                          const TextStyle(
-                                        color:
-                                            Colors.grey,
-                                      ),
-                                    ),
-                                  ],
+                                    ? NetworkImage(
+                                        data["photoUrl"],
+                                      )
+                                    : null,
+                            child: (data[
+                                            "photoUrl"] ==
+                                        null ||
+                                    data["photoUrl"] ==
+                                        "")
+                                ? const Icon(
+                                    Icons.person,
+                                  )
+                                : null,
+                          ),
+
+                          const SizedBox(
+                              width: 15),
+
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment
+                                      .start,
+                              children: [
+                                Text(
+                                  data["name"] ??
+                                      "-",
+                                  style:
+                                      const TextStyle(
+                                    fontWeight:
+                                        FontWeight
+                                            .bold,
+                                    fontSize: 16,
+                                  ),
                                 ),
-                              ),
-                              Container(
-                                padding:
-                                    const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 5,
+
+                                Text(
+                                  data["npm"] ??
+                                      "-",
                                 ),
-                                decoration:
-                                    BoxDecoration(
-                                  color: (data["accountStatus"] ??
-                                              "Aktif") ==
-                                          "Nonaktif"
-                                      ? Colors.red
-                                      : Colors.green,
-                                  borderRadius:
-                                      BorderRadius.circular(
-                                          20),
-                                ),
-                                child: Text(
-                                  data["accountStatus"] ??
-                                      "Aktif",
+
+                                Text(
+                                  data["role"] ??
+                                      "Mahasiswa",
                                   style:
                                       const TextStyle(
                                     color:
-                                        Colors.white,
+                                        Colors.grey,
                                   ),
                                 ),
-                              )
-                            ],
+                              ],
+                            ),
                           ),
 
-                          const SizedBox(
-                              height: 20),
-
-                          Row(
-                            children: [
-                              Expanded(
-                                child:
-                                    ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            AdminUserDetailScreen(
-                                          uid:
-                                              user.id,
-                                          data:
-                                              data,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  child: const Text(
-                                      "Lihat Profil"),
-                                ),
+                          Container(
+                            padding:
+                                const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration:
+                                BoxDecoration(
+                              color: status ==
+                                      "Nonaktif"
+                                  ? Colors.red
+                                  : Colors.green,
+                              borderRadius:
+                                  BorderRadius.circular(
+                                      20),
+                            ),
+                            child: Text(
+                              status,
+                              style:
+                                  const TextStyle(
+                                color:
+                                    Colors.white,
                               ),
-                            ],
+                            ),
                           ),
-
-                          const SizedBox(
-                              height: 10),
-
-                          Row(
-                            children: [
-                              Expanded(
-                                child:
-                                    ElevatedButton(
-                                  onPressed: () {
-                                    disableUser(
-                                        user.id);
-                                  },
-                                  style:
-                                      ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        Colors.orange,
-                                  ),
-                                  child: const Text(
-                                      "Nonaktifkan"),
-                                ),
-                              ),
-                              const SizedBox(
-                                  width: 10),
-                              Expanded(
-                                child:
-                                    ElevatedButton(
-                                  onPressed: () {
-                                    deleteUser(
-                                        user.id);
-                                  },
-                                  style:
-                                      ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        Colors.red,
-                                  ),
-                                  child: const Text(
-                                      "Hapus"),
-                                ),
-                              ),
-                            ],
-                          )
                         ],
                       ),
-                    ),
-                  );
-                },
-              )
+
+                      const SizedBox(
+                          height: 20),
+
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    AdminUserDetailScreen(
+                                  uid: user.id,
+                                  data: data,
+                                ),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            "Lihat Profil",
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(
+                          height: 10),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child:
+                                ElevatedButton(
+                              style:
+                                  ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    Colors.orange,
+                                minimumSize:
+                                    const Size(
+                                        0, 50),
+                              ),
+                              onPressed: () {
+                                disableUser(
+                                    user.id);
+                              },
+                              child: const Text(
+                                "Nonaktifkan",
+                                style: TextStyle(
+                                  color:
+                                      Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(
+                              width: 10),
+
+                          Expanded(
+                            child:
+                                ElevatedButton(
+                              style:
+                                  ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    Colors.red,
+                                minimumSize:
+                                    const Size(
+                                        0, 50),
+                              ),
+                              onPressed: () {
+                                confirmDelete(
+                                  user.id,
+                                );
+                              },
+                              child: const Text(
+                                "Hapus",
+                                style: TextStyle(
+                                  color:
+                                      Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                );
+              }),
             ],
           );
         },
-      ),
-    );
-  }
-
-  Widget _statCard(
-      String title,
-      String value) {
-    return Card(
-      child: Padding(
-        padding:
-            const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Text(title),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight:
-                    FontWeight.bold,
-              ),
-            )
-          ],
-        ),
       ),
     );
   }

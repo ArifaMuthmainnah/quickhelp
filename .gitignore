@@ -55,7 +55,7 @@ key.properties
 firebase-debug.log
 firebase-debug.*.log
 
-crashlytics-build.properties
+crashlytics-build.  properties
 
 .env
 .env.*

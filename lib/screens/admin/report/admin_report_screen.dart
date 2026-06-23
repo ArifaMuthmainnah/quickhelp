@@ -50,6 +50,7 @@ class _AdminReportScreenState
       backgroundColor: AppColors.background,
 
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text(
           "Kelola Laporan",
         ),
