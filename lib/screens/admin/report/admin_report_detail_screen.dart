@@ -23,9 +23,23 @@ class _ReportDetailScreenState
   final firestore =
       FirebaseFirestore.instance;
 
+  Color statusColor(String status) {
+    switch (status) {
+      case "Menunggu":
+        return Colors.orange;
+      case "Diproses":
+        return Colors.blue;
+      case "Selesai":
+        return Colors.green;
+      default:
+        return Colors.grey;
+    }
+  }
+
   Future<void> updateReport(
-      String status,
-      String title) async {
+    String status,
+    String title,
+  ) async {
     await firestore
         .collection("reports")
         .doc(widget.id)
@@ -62,8 +76,9 @@ class _ReportDetailScreenState
     ScaffoldMessenger.of(context)
         .showSnackBar(
       const SnackBar(
-        content:
-            Text("Akun berhasil dinonaktifkan"),
+        content: Text(
+          "Akun berhasil dinonaktifkan",
+        ),
       ),
     );
   }
@@ -73,7 +88,59 @@ class _ReportDetailScreenState
 
     final d = ts.toDate();
 
-    return "${d.day}/${d.month}/${d.year}  ${d.hour}:${d.minute.toString().padLeft(2, "0")}";
+    return "${d.day}/${d.month}/${d.year} • ${d.hour}:${d.minute.toString().padLeft(2, "0")}";
+  }
+
+  Widget infoCard(
+    IconData icon,
+    String title,
+    String value,
+  ) {
+    return Container(
+      margin:
+          const EdgeInsets.only(bottom: 15),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius:
+            BorderRadius.circular(18),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: AppColors.primary,
+          ),
+
+          const SizedBox(width: 15),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.grey,
+                  ),
+                ),
+
+                const SizedBox(height: 5),
+
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontWeight:
+                        FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
   }
 
   @override
@@ -103,241 +170,253 @@ class _ReportDetailScreenState
         child: Column(
           crossAxisAlignment:
               CrossAxisAlignment.start,
-
           children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    "ID: ${widget.id}",
+                    style: const TextStyle(
+                      fontWeight:
+                          FontWeight.bold,
+                    ),
+                  ),
+                ),
 
-            /// ID
-            Text(
-              "ID Laporan",
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: statusColor(
+                            data["status"])
+                        .withValues(
+                      alpha: 0.15,
+                    ),
+                    borderRadius:
+                        BorderRadius.circular(
+                            20),
+                  ),
+                  child: Text(
+                    data["status"],
+                    style: TextStyle(
+                      color: statusColor(
+                        data["status"],
+                      ),
+                      fontWeight:
+                          FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
 
+            const SizedBox(height: 25),
+
+            infoCard(
+              Icons.person,
+              "Pelapor",
+              data["reporterName"] ?? "-",
+            ),
+
+            infoCard(
+              Icons.report_problem,
+              "Terlapor",
+              data["reportedName"] ?? "-",
+            ),
+
+            infoCard(
+              Icons.assignment,
+              "Permintaan",
+              data["requestTitle"] ?? "-",
+            ),
+
+            const SizedBox(height: 25),
+
+            const Text(
+              "Kronologi Laporan",
               style: TextStyle(
-                color: Colors.grey.shade700,
+                fontSize: 18,
+                fontWeight:
+                    FontWeight.bold,
               ),
             ),
 
-            Text(
-              widget.id,
+            const SizedBox(height: 15),
 
-              style: const TextStyle(
-                fontWeight:
-                    FontWeight.bold,
+            Container(
+              width: double.infinity,
+              padding:
+                  const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius:
+                    BorderRadius.circular(
+                        20),
+              ),
+              child: Column(
+                crossAxisAlignment:
+                    CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Alasan: ${data["reason"]}",
+                    style: const TextStyle(
+                      fontWeight:
+                          FontWeight.bold,
+                    ),
+                  ),
 
-                fontSize: 18,
+                  const SizedBox(height: 12),
+
+                  Text(
+                    data["description"] ??
+                        "-",
+                  ),
+                ],
               ),
             ),
 
             const SizedBox(height: 25),
 
-            _infoCard(
-              "Pelapor",
-              data["reporterName"] ??
-                  "-",
-            ),
-
-            const SizedBox(height: 15),
-
-            _infoCard(
-              "Terlapor",
-              data["reportedName"] ??
-                  "-",
-            ),
-
-            const SizedBox(height: 15),
-
-            _infoCard(
-              "Permintaan",
-              data["requestTitle"] ??
-                  "-",
-            ),
-
-            const SizedBox(height: 30),
-
             const Text(
-              "Tahapan Laporan",
-
+              "Progress Penanganan",
               style: TextStyle(
+                fontSize: 18,
                 fontWeight:
                     FontWeight.bold,
-
-                fontSize: 18,
               ),
             ),
 
             const SizedBox(height: 15),
 
-            Card(
-              child: Padding(
+            ...progress.map((item) {
+              final map =
+                  Map<String, dynamic>.from(
+                item,
+              );
+
+              return Container(
+                margin:
+                    const EdgeInsets.only(
+                  bottom: 12,
+                ),
                 padding:
                     const EdgeInsets.all(15),
-
-                child: Column(
-                  children:
-                      progress.map((item) {
-
-                    final map =
-                        Map<String,
-                                dynamic>.from(
-                            item);
-
-                    return ListTile(
-                      leading:
-                          const Icon(
-                        Icons
-                            .check_circle,
-
-                        color: Colors.green,
-                      ),
-
-                      title: Text(
-                        map["title"],
-                      ),
-
-                      subtitle: Text(
-                        formatDate(
-                          map["time"],
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius:
+                      BorderRadius.circular(
+                          18),
                 ),
-              ),
-            ),
-
-            const SizedBox(height: 25),
-
-            const Text(
-              "Kronologi",
-
-              style: TextStyle(
-                fontWeight:
-                    FontWeight.bold,
-
-                fontSize: 18,
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            Card(
-              child: Padding(
-                padding:
-                    const EdgeInsets.all(18),
-
-                child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment
-                          .start,
-
+                child: Row(
                   children: [
-
-                    Text(
-                      "Alasan : ${data["reason"]}",
+                    const Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(width: 12),
 
-                    Text(
-                      data["description"] ??
-                          "-",
-                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment
+                                .start,
+                        children: [
+                          Text(
+                            map["title"],
+                            style:
+                                const TextStyle(
+                              fontWeight:
+                                  FontWeight
+                                      .bold,
+                            ),
+                          ),
+
+                          Text(
+                            formatDate(
+                              map["time"],
+                            ),
+                            style:
+                                const TextStyle(
+                              color:
+                                  Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
                   ],
                 ),
-              ),
-            ),
+              );
+            }),
 
             const SizedBox(height: 25),
 
             const Text(
               "Bukti Laporan",
-
               style: TextStyle(
+                fontSize: 18,
                 fontWeight:
                     FontWeight.bold,
-
-                fontSize: 18,
               ),
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 15),
 
             evidences.isEmpty
                 ? const Text(
-                    "Tidak ada lampiran")
+                    "Tidak ada lampiran",
+                  )
                 : Wrap(
                     spacing: 10,
                     runSpacing: 10,
-
-                    children: evidences
-                        .map<Widget>(
-                            (url) {
-                      return GestureDetector(
-                        onTap: () {
-                          showDialog(
-                            context:
-                                context,
-
-                            builder: (_) {
-                              return Dialog(
-                                child:
-                                    InteractiveViewer(
-                                  child:
-                                      Image.network(
-                                    url,
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-
-                        child: ClipRRect(
+                    children:
+                        evidences.map<Widget>(
+                      (url) {
+                        return ClipRRect(
                           borderRadius:
                               BorderRadius
-                                  .circular(
-                                      12),
-
+                                  .circular(14),
                           child:
                               Image.network(
                             url,
-
                             width: 100,
-
                             height: 100,
-
                             fit: BoxFit.cover,
                           ),
-                        ),
-                      );
-                    }).toList(),
+                        );
+                      },
+                    ).toList(),
                   ),
 
             const SizedBox(height: 35),
 
             SizedBox(
               width: double.infinity,
-
               child: ElevatedButton.icon(
-                icon: const Icon(
-                  Icons.warning,
-                ),
-
                 style:
                     ElevatedButton.styleFrom(
                   backgroundColor:
                       Colors.orange,
                 ),
-
                 onPressed: () {
-
                   updateReport(
-                    widget.data["status"],
+                    data["status"],
                     "Peringatan diberikan kepada pengguna",
                   );
-
                 },
-
+                icon: const Icon(
+                  Icons.warning,
+                  color: Colors.white,
+                ),
                 label: const Text(
                   "Beri Peringatan",
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -346,22 +425,22 @@ class _ReportDetailScreenState
 
             SizedBox(
               width: double.infinity,
-
               child: ElevatedButton.icon(
-                icon: const Icon(
-                  Icons.person_off,
-                ),
-
                 style:
                     ElevatedButton.styleFrom(
                   backgroundColor:
                       Colors.red,
                 ),
-
                 onPressed: disableUser,
-
+                icon: const Icon(
+                  Icons.person_off,
+                  color: Colors.white,
+                ),
                 label: const Text(
                   "Nonaktifkan Akun",
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -370,52 +449,33 @@ class _ReportDetailScreenState
 
             SizedBox(
               width: double.infinity,
-
               child: ElevatedButton.icon(
-                icon: const Icon(
-                  Icons.check,
-                ),
-
                 style:
                     ElevatedButton.styleFrom(
                   backgroundColor:
                       Colors.green,
                 ),
-
                 onPressed: () {
-
                   updateReport(
                     "Selesai",
                     "Laporan telah diselesaikan",
                   );
-
                 },
-
+                icon: const Icon(
+                  Icons.check,
+                  color: Colors.white,
+                ),
                 label: const Text(
                   "Selesaikan Laporan",
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
 
             const SizedBox(height: 40),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _infoCard(
-      String title,
-      String value) {
-    return Card(
-      child: ListTile(
-        title: Text(title),
-        subtitle: Text(
-          value,
-          style: const TextStyle(
-            fontWeight:
-                FontWeight.bold,
-          ),
         ),
       ),
     );

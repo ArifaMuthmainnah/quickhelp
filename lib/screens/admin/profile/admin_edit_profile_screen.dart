@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 
 import '../../../services/cloudinary_service.dart';
 import '../../../theme/app_colors.dart';
+import '../../../widgets/custom_button.dart';
+import '../../../widgets/custom_textfield.dart';
 
 class AdminEditProfileScreen extends StatefulWidget {
   const AdminEditProfileScreen({super.key});
@@ -18,15 +20,57 @@ class AdminEditProfileScreen extends StatefulWidget {
 
 class _AdminEditProfileScreenState
     extends State<AdminEditProfileScreen> {
-  final nameController = TextEditingController();
-  final bioController = TextEditingController();
+  final nameController =
+      TextEditingController();
 
-  final cloudinary = CloudinaryService();
+  final emailController =
+      TextEditingController();
 
-  bool loading = false;
+  final bioController =
+      TextEditingController();
+
+  final cloudinaryService =
+      CloudinaryService();
+
+  bool isLoading = false;
 
   File? selectedImage;
-  String imageUrl = "";
+
+  String photoUrl = "";
+
+  @override
+  void initState() {
+    super.initState();
+    loadAdminData();
+  }
+
+  Future<void> loadAdminData() async {
+    final uid =
+        FirebaseAuth.instance.currentUser!.uid;
+
+    final doc = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(uid)
+        .get();
+
+    final data = doc.data();
+
+    if (data != null) {
+      setState(() {
+        nameController.text =
+            data["name"] ?? "";
+
+        emailController.text =
+            data["email"] ?? "";
+
+        bioController.text =
+            data["bio"] ?? "";
+
+        photoUrl =
+            data["photoUrl"] ?? "";
+      });
+    }
+  }
 
   Future<void> pickImage() async {
     final result =
@@ -42,87 +86,71 @@ class _AdminEditProfileScreenState
     }
   }
 
-  Future<void> loadData() async {
-    final user =
-        FirebaseAuth.instance.currentUser!;
-
-    final doc =
-        await FirebaseFirestore.instance
-            .collection("users")
-            .doc(user.uid)
-            .get();
-
-    if (doc.exists) {
-      nameController.text =
-          doc["name"] ?? "";
-
-      bioController.text =
-          doc["bio"] ?? "";
-
-      imageUrl =
-          doc["photoUrl"] ?? "";
-
-      setState(() {});
-    }
-  }
-
   Future<void> saveProfile() async {
+    final uid =
+        FirebaseAuth.instance.currentUser!.uid;
+
     setState(() {
-      loading = true;
+      isLoading = true;
     });
 
-    final user =
-        FirebaseAuth.instance.currentUser!;
+    try {
+      String finalPhotoUrl = photoUrl;
 
-    String finalPhoto = imageUrl;
+      if (selectedImage != null) {
+        final uploaded =
+            await cloudinaryService.uploadFile(
+          selectedImage!,
+        );
 
-    if (selectedImage != null) {
-      final uploaded =
-          await cloudinary.uploadFile(
-        selectedImage!,
+        if (uploaded != null) {
+          finalPhotoUrl = uploaded;
+        }
+      }
+
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(uid)
+          .update({
+        "name": nameController.text.trim(),
+        "bio": bioController.text.trim(),
+        "photoUrl": finalPhotoUrl,
+        "updatedAt": Timestamp.now(),
+      });
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+        const SnackBar(
+          content:
+              Text("Profil admin berhasil diperbarui"),
+          backgroundColor: Colors.green,
+        ),
       );
 
-      if (uploaded != null) {
-        finalPhoto = uploaded;
-      }
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+        SnackBar(
+          content:
+              Text("Gagal update profil: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
 
-    await FirebaseFirestore.instance
-        .collection("users")
-        .doc(user.uid)
-        .update({
-      "name": nameController.text,
-      "bio": bioController.text,
-      "photoUrl": finalPhoto,
-    });
-
-    if (!mounted) return;
-
     setState(() {
-      loading = false;
+      isLoading = false;
     });
-
-    ScaffoldMessenger.of(context)
-        .showSnackBar(
-      const SnackBar(
-        content:
-            Text("Profil berhasil diperbarui"),
-      ),
-    );
-
-    Navigator.pop(context);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    loadData();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor:
+          AppColors.background,
 
       appBar: AppBar(
         title: const Text("Edit Profil"),
@@ -130,7 +158,6 @@ class _AdminEditProfileScreenState
 
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
-
         child: Column(
           children: [
 
@@ -140,117 +167,88 @@ class _AdminEditProfileScreenState
                 radius: 55,
                 backgroundColor:
                     AppColors.primary,
-
                 backgroundImage:
                     selectedImage != null
                         ? FileImage(
                             selectedImage!,
                           )
-                        : imageUrl.isNotEmpty
+                        : (photoUrl.isNotEmpty
                             ? NetworkImage(
-                                imageUrl,
+                                photoUrl,
                               )
-                            : null,
-
+                            : null) as ImageProvider?,
                 child: selectedImage == null &&
-                        imageUrl.isEmpty
+                        photoUrl.isEmpty
                     ? const Icon(
-                        Icons.camera_alt,
+                        Icons.admin_panel_settings,
                         color: Colors.white,
-                        size: 35,
+                        size: 55,
                       )
                     : null,
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 10),
 
-            TextField(
+            const Text(
+              "Tap untuk ganti foto",
+              style: TextStyle(
+                color: Colors.grey,
+              ),
+            ),
+
+            const SizedBox(height: 35),
+
+            CustomTextField(
               controller: nameController,
-              decoration: InputDecoration(
-                labelText: "Nama Admin",
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(15),
-                ),
-              ),
+              hint: "Nama Admin",
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
 
-            TextField(
+            CustomTextField(
+              controller: emailController,
+              hint: "Email",
               enabled: false,
-              decoration: InputDecoration(
-                labelText: "Email",
-                hintText: FirebaseAuth
-                        .instance
-                        .currentUser
-                        ?.email ??
-                    "-",
-                filled: true,
-                fillColor:
-                    Colors.grey.shade200,
-                border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(15),
-                ),
-              ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
 
             TextField(
               controller: bioController,
               maxLines: 4,
               maxLength: 150,
               decoration: InputDecoration(
-                labelText: "Bio Singkat",
-                hintText:
-                    "Tulis bio singkat...",
+                hintText: "Bio Singkat",
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
                   borderRadius:
-                      BorderRadius.circular(15),
+                      BorderRadius.circular(
+                    16,
+                  ),
                 ),
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 35),
 
-            SizedBox(
-              width: double.infinity,
-              height: 55,
-              child: ElevatedButton(
-                style:
-                    ElevatedButton.styleFrom(
-                  backgroundColor:
-                      AppColors.primary,
-                ),
-                onPressed:
-                    loading ? null : saveProfile,
-                child: loading
-                    ? const CircularProgressIndicator(
-                        color: Colors.white,
-                      )
-                    : const Text(
-                        "Simpan Perubahan",
-                        style: TextStyle(
-                          color: Colors.white,
-                        ),
-                      ),
-              ),
-            ),
+            isLoading
+                ? const CircularProgressIndicator()
+                : CustomButton(
+                    text: "Simpan Perubahan",
+                    onTap: saveProfile,
+                  ),
           ],
         ),
       ),
     );
   }
+
   @override
   void dispose() {
     nameController.dispose();
+    emailController.dispose();
     bioController.dispose();
     super.dispose();
   }

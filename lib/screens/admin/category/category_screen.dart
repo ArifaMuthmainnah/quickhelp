@@ -4,14 +4,124 @@ import 'package:flutter/material.dart';
 import '../../../theme/app_colors.dart';
 import 'create_category_screen.dart';
 
-class CategoryScreen extends StatelessWidget {
+class CategoryScreen extends StatefulWidget {
   const CategoryScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final categoryRef =
-        FirebaseFirestore.instance.collection("categories");
+  State<CategoryScreen> createState() =>
+      _CategoryScreenState();
+}
 
+class _CategoryScreenState
+    extends State<CategoryScreen> {
+  final categoryRef =
+      FirebaseFirestore.instance.collection(
+    "categories",
+  );
+
+  Future<void> seedDefaultCategories() async {
+    final snapshot = await categoryRef.get();
+
+    if (snapshot.docs.isEmpty) {
+      final defaults = [
+        {
+          "name": "Akademik",
+          "description":
+              "Bantuan terkait tugas, belajar, dan kuliah",
+        },
+        {
+          "name": "Barang",
+          "description":
+              "Bantuan pinjam, cari, atau antar barang",
+        },
+        {
+          "name": "Sosial",
+          "description":
+              "Bantuan sosial dan kegiatan masyarakat",
+        },
+      ];
+
+      for (var item in defaults) {
+        await categoryRef.add(item);
+      }
+    }
+  }
+
+  Future<void> editCategory(
+    String id,
+    String oldName,
+    String oldDesc,
+  ) async {
+    final nameController =
+        TextEditingController(text: oldName);
+
+    final descController =
+        TextEditingController(text: oldDesc);
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Edit Kategori"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: "Nama",
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: descController,
+              decoration: const InputDecoration(
+                labelText: "Deskripsi",
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () =>
+                Navigator.pop(context),
+            child: const Text("Batal"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await categoryRef.doc(id).update({
+                "name":
+                    nameController.text.trim(),
+                "description":
+                    descController.text.trim(),
+              });
+
+              if (!mounted) return;
+              Navigator.pop(context);
+
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    "Kategori berhasil diupdate",
+                  ),
+                ),
+              );
+            },
+            child: const Text("Simpan"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    seedDefaultCategories();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
 
@@ -21,7 +131,8 @@ class CategoryScreen extends StatelessWidget {
         ),
       ),
 
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton:
+          FloatingActionButton.extended(
         backgroundColor: AppColors.primary,
         onPressed: () {
           Navigator.push(
@@ -49,7 +160,8 @@ class CategoryScreen extends StatelessWidget {
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(
-              child: CircularProgressIndicator(),
+              child:
+                  CircularProgressIndicator(),
             );
           }
 
@@ -57,18 +169,19 @@ class CategoryScreen extends StatelessWidget {
 
           return Column(
             children: [
-
               Container(
-                margin: const EdgeInsets.all(20),
-                padding: const EdgeInsets.all(18),
+                margin:
+                    const EdgeInsets.all(20),
+                padding:
+                    const EdgeInsets.all(18),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius:
-                      BorderRadius.circular(20),
+                      BorderRadius.circular(
+                          20),
                 ),
                 child: Row(
                   children: [
-
                     const CircleAvatar(
                       backgroundColor:
                           AppColors.primary,
@@ -83,19 +196,19 @@ class CategoryScreen extends StatelessWidget {
                     Expanded(
                       child: Column(
                         crossAxisAlignment:
-                            CrossAxisAlignment.start,
+                            CrossAxisAlignment
+                                .start,
                         children: [
-
                           const Text(
                             "Total Kategori",
                             style: TextStyle(
                               color: Colors.grey,
                             ),
                           ),
-
                           Text(
                             docs.length.toString(),
-                            style: const TextStyle(
+                            style:
+                                const TextStyle(
                               fontSize: 26,
                               fontWeight:
                                   FontWeight.bold,
@@ -116,7 +229,10 @@ class CategoryScreen extends StatelessWidget {
                   ),
                   itemCount: docs.length,
                   itemBuilder: (_, index) {
-                    final data = docs[index];
+                    final data =
+                        docs[index].data()
+                            as Map<String,
+                                dynamic>;
 
                     return Card(
                       margin:
@@ -137,15 +253,15 @@ class CategoryScreen extends StatelessWidget {
                               CrossAxisAlignment
                                   .start,
                           children: [
-
                             Row(
                               children: [
-
                                 CircleAvatar(
                                   backgroundColor:
                                       AppColors
                                           .primary
-                                          .withValues(alpha: 0.15),
+                                          .withValues(
+                                              alpha:
+                                                  0.15),
                                   child: const Icon(
                                     Icons.category,
                                     color:
@@ -182,7 +298,9 @@ class CategoryScreen extends StatelessWidget {
                                       BoxDecoration(
                                     color: Colors
                                         .green
-                                        .withValues(alpha: 0.15),
+                                        .withValues(
+                                            alpha:
+                                                0.15),
                                     borderRadius:
                                         BorderRadius
                                             .circular(
@@ -208,7 +326,6 @@ class CategoryScreen extends StatelessWidget {
 
                             Row(
                               children: [
-
                                 Expanded(
                                   child:
                                       OutlinedButton.icon(
@@ -220,8 +337,15 @@ class CategoryScreen extends StatelessWidget {
                                         const Text(
                                       "Edit",
                                     ),
-                                    onPressed:
-                                        () {},
+                                    onPressed: () {
+                                      editCategory(
+                                        docs[index]
+                                            .id,
+                                        data["name"],
+                                        data[
+                                            "description"],
+                                      );
+                                    },
                                   ),
                                 ),
 
@@ -235,8 +359,7 @@ class CategoryScreen extends StatelessWidget {
                                         ElevatedButton
                                             .styleFrom(
                                       backgroundColor:
-                                          Colors
-                                              .red,
+                                          Colors.red,
                                     ),
                                     icon:
                                         const Icon(
@@ -257,9 +380,24 @@ class CategoryScreen extends StatelessWidget {
                                         () async {
                                       await categoryRef
                                           .doc(
-                                            data.id,
+                                            docs[index]
+                                                .id,
                                           )
                                           .delete();
+
+                                      if (!mounted)
+                                        return;
+
+                                      ScaffoldMessenger
+                                              .of(
+                                                  context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            "Kategori berhasil dihapus",
+                                          ),
+                                        ),
+                                      );
                                     },
                                   ),
                                 ),
