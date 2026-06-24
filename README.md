@@ -2,8 +2,9 @@
 ## Anggota Kelompok
 * Arifa Muthmainnah (2308107010012)
 * Sifa Jema (2308107010080)
+
   
-QuickHelp adalah aplikasi mobile berbasis Flutter yang dirancang untuk membantu mahasiswa dalam mencari maupun memberikan bantuan secara cepat di lingkungan kampus.
+**QuickHelp** adalah aplikasi mobile berbasis Flutter yang dirancang untuk membantu mahasiswa dalam mencari maupun memberikan bantuan secara cepat di lingkungan kampus.
 Aplikasi ini memungkinkan pengguna membuat permintaan bantuan berdasarkan kategori tertentu, menampilkan lokasi bantuan, serta berkomunikasi dengan pengguna lain melalui fitur chat. Dengan memanfaatkan teknologi berbasis lokasi (*Location Based Service*), mahasiswa dapat menemukan bantuan yang tersedia di sekitar mereka dengan lebih mudah dan efisien.
 
 ---
