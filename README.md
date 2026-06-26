@@ -9,6 +9,15 @@ Aplikasi ini memungkinkan pengguna membuat permintaan bantuan berdasarkan katego
 
 ---
 
+## Tujuan Pengembangan
+
+- Membantu mahasiswa mencari bantuan lebih cepat
+- Mempermudah komunikasi antar mahasiswa
+- Meningkatkan kolaborasi di lingkungan kampus
+- Menyediakan sistem bantuan yang lebih terstruktur
+
+---
+
 ## Kontribusi terhadap Sustainable Development Goals (SDGs)
 
 QuickHelp mendukung beberapa tujuan Sustainable Development Goals (SDGs), khususnya:
@@ -80,6 +89,53 @@ QuickHelp mendorong terbentuknya komunitas kampus yang saling membantu, inklusif
 
 ---
 
+## Struktur Database
+
+### users
+- uid
+- name
+- email
+- npm
+- whatsapp
+- bio
+- photoUrl
+- profileVisible
+
+### requests
+- uid
+- userName
+- title
+- description
+- category
+- reward
+- deadline
+- duration
+- location
+- fileUrl
+- status
+- createdAt
+
+### chats
+- senderId
+- receiverId
+- message
+- createdAt
+
+### notifications
+- uid
+- title
+- description
+- createdAt
+
+### reports
+- reporterId
+- reportedId
+- requestId
+- reason
+- createdAt
+
+---
+
 ## Cara Menjalankan Project
 
 Pastikan telah menginstal:
@@ -129,3 +185,32 @@ Atau tekan tombol **Run** pada Android Studio.
 
 ---
 Project ini dibuat untuk keperluan akademik pada Mata Kuliah Pemrograman Berbasis Mobile.
+
+---
+
+## Screenshot Aplikasi
+
+### Dashboard User
+![Dashboard User](screenshots/dashboard_user.png)
+
+### Beri Bantuan
+![Beri Bantuan](screenshots/beri_bantuan.png)
+
+### Buat Permintaan
+![Buat Permintaan](screenshots/buat_permintaan.png)
+
+### Riwayat Permintaan Saya
+![Riwayat Permintaan Saya](screenshots/riwayat_permintaan_saya.png)
+
+### Dashboard Admin
+![Dashboard Admin](screenshots/dashboard_admin.png)
+
+### Kelola Permintaan
+![Kelola Permintaan](screenshots/kelola_permintaan.png)
+
+### Kelola Laporan
+![Kelola Laporan](screenshots/kelola_laporan.png)
+
+### Kelola Pengguna
+![Kelola Pengguna](screenshots/kelola_pengguna.png)
+
