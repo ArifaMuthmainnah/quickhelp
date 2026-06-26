@@ -82,7 +82,8 @@ QuickHelp mendorong terbentuknya komunitas kampus yang saling membantu, inklusif
 * Flutter
 * Dart
 * REST API
-* Cloud firestore
+* Cloud firestore (Database)
+* Cloudinary (Storage)
 * WhatsApp Integration
 * Emulator Android Studio
 * Flutter SDK
