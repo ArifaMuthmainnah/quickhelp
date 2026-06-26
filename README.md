@@ -82,7 +82,7 @@ QuickHelp mendorong terbentuknya komunitas kampus yang saling membantu, inklusif
 * Flutter
 * Dart
 * REST API
-* Cloud firestore (Database)
+* Cloud Firestore (Database)
 * Cloudinary (Storage)
 * WhatsApp Integration
 * Emulator Android Studio
@@ -134,6 +134,22 @@ QuickHelp mendorong terbentuknya komunitas kampus yang saling membantu, inklusif
 - requestId
 - reason
 - createdAt
+
+---
+
+## Arsitektur Sistem
+
+QuickHelp menggunakan arsitektur client-server:
+
+- Frontend: Flutter (Mobile App)
+- Backend: Firebase Authentication
+- Database: Cloud Firestore
+- Storage: Cloudinary
+- Real-time Communication: Firestore Stream
+- External Integration: WhatsApp API
+
+Alur sistem:
+User/Admin → Flutter App → Firebase Auth → Firestore Database → Cloudinary Storage
 
 ---
 
@@ -191,27 +207,30 @@ Project ini dibuat untuk keperluan akademik pada Mata Kuliah Pemrograman Berbasi
 
 ## Screenshot Aplikasi
 
+### Landing Page
+![Landing Page](screenshots/landing_page.jpeg)
+
 ### Dashboard User
-![Dashboard User](screenshots/dashboard_user.png)
+![Dashboard User](screenshots/dashboard_user.jpeg)
 
 ### Beri Bantuan
-![Beri Bantuan](screenshots/beri_bantuan.png)
+![Beri Bantuan](screenshots/beri_bantuan.jpeg)
 
 ### Buat Permintaan
-![Buat Permintaan](screenshots/buat_permintaan.png)
+![Buat Permintaan](screenshots/buat_permintaan.jpeg)
 
 ### Riwayat Permintaan Saya
-![Riwayat Permintaan Saya](screenshots/riwayat_permintaan_saya.png)
+![Riwayat Permintaan Saya](screenshots/riwayat_permintaan_saya.jpeg)
 
 ### Dashboard Admin
-![Dashboard Admin](screenshots/dashboard_admin.png)
+![Dashboard Admin](screenshots/dashboard_admin.jpeg)
 
 ### Kelola Permintaan
-![Kelola Permintaan](screenshots/kelola_permintaan.png)
+![Kelola Permintaan](screenshots/kelola_permintaan.jpeg)
 
 ### Kelola Laporan
-![Kelola Laporan](screenshots/kelola_laporan.png)
+![Kelola Laporan](screenshots/kelola_laporan.jpeg)
 
 ### Kelola Pengguna
-![Kelola Pengguna](screenshots/kelola_pengguna.png)
+![Kelola Pengguna](screenshots/kelola_pengguna.jpeg)
 
